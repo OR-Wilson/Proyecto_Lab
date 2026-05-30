@@ -1,0 +1,451 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[journal]{IEEEtran}
+\usepackage[table]{xcolor}
+\usepackage{circuitikz}
+\usetikzlibrary{calc}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{literatura.bib}
+\usepackage[spanish]{babel}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{array}
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\captionsetup[figure]{justification=centering}
+\captionsetup[table]{position=bottom, font=small}
+\graphicspath{{./}{./fig/}}
+
+\begin{document}
+
+\title{Entregable 1 -- Proyecto: Semáforo vehicular y peatonal}
+
+\author{Kevin~Méndez~Carvajal,~\IEEEmembership{Estudiante de Ingeniería Electrónica,~ITCR}
+        ~Wilson~Osejo~Ruiz,~\IEEEmembership{Estudiante de Ingeniería Electrónica,~ITCR}
+        ~Kevin~Sobalvarro~Mora,~\IEEEmembership{Estudiante de Ingeniería Electrónica,~ITCR}
+        y~Brandon~Nájera~Zúñiga,~\IEEEmembership{Estudiante de Ingeniería Electrónica,~ITCR}}
+
+\markboth{EL3215 Laboratorio de Electrónica Analógica, IS2026}%
+{EL3215 Laboratorio de Electrónica Analógica}
+
+\maketitle
+
+% ---------------------------------------------------------------------------
+\begin{abstract}
+Espacio para el resumen.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Semáforo vehicular, semáforo peatonal, temporizador 555, contador BCD, CD4510BE,
+HEF4511BP, MC14538BCP, TC4013BP, TC4093BP, display de siete segmentos, amplificador
+de audio, regulador de tensión, lógica digital discreta.
+\end{IEEEkeywords}
+
+% ===========================================================================
+\section{Introducción}
+
+\IEEEPARstart{L}{os} sistemas de control de tráfico son fundamentales para la regulación
+segura y eficiente de la movilidad vehicular y peatonal en entornos urbanos. Estos sistemas
+integran elementos de temporización, señalización visual y auditiva, así como mecanismos
+de interacción con los usuarios~\cite{Floyd2008}.
+
+En el contexto de la ingeniería electrónica, el diseño de un sistema de semáforo permite
+aplicar conceptos relacionados con la generación de señales, temporización, control lógico,
+visualización de información y procesamiento de señales de audio. Además, representa un
+ejemplo claro de integración de subsistemas analógicos y digitales en una aplicación real.
+
+En este proyecto se diseña e implementa un sistema completo de semáforo vehicular y
+peatonal utilizando únicamente circuitos digitales discretos —temporizadores, contadores,
+compuertas y registros— sin el uso de microcontroladores ni FPGAs, tal como lo exige la
+especificación técnica del curso. El sistema es alimentado desde $120\,\text{VAC}$
+mediante una fuente diseñada con transformador, rectificador y regulador de tensión
+propios.
+
+El sistema se divide en cuatro subsistemas independientes: semáforo vehicular, semáforo
+peatonal con display de cuenta regresiva de dos dígitos, sistema de audio para la
+señalización auditiva del paso peatonal, y sistema de potencia. Cada subsistema fue
+asignado a un integrante del equipo y se describe de forma independiente en las secciones
+de marco teórico y metodología.
+
+% ===========================================================================
+\section{Marco Teórico}
+
+% ---------------------------------------------------------------------------
+\subsection{Semáforo vehicular}
+Sección a cargo de: Wilson
+\subsection{CD4013 – Flip-flop D dual}
+
+El CD4013 es un circuito integrado CMOS que contiene dos flip-flops tipo D independientes, disparables por flanco de subida del reloj. Cada flip-flop posee entradas asíncronas \texttt{SET} (preset) y \texttt{RESET} (clear) activas en nivel alto, además de salidas directa (\texttt{Q}) y complementada (\texttt{$\overline{Q}$}). Su tabla de verdad establece que en el flanco de subida de \texttt{CLK}, el valor presente en \texttt{D} se transfiere a \texttt{Q}. Las entradas asíncronas tienen prioridad sobre el reloj. Opera con tensiones de alimentación típicas entre 3 V y 15 V, siendo 5 V un valor común en sistemas digitales de baja potencia.
+
+\subsection{LM555CN – Temporizador analógico}
+
+El LM555 es un temporizador integrado de 8 pines que puede configurarse en tres modos principales: astable (oscilador libre), monoestable (generador de pulso único) y biestable (disparador Schmitt). Internamente contiene dos comparadores, un flip-flop RS, un transistor de descarga (\texttt{DIS}) y una etapa de salida capaz de suministrar o disipar hasta 200 mA.
+
+\begin{itemize}
+    \item \textbf{Modo monoestable}: Un pulso negativo en \texttt{TRI} (\textit{trigger}) lleva la salida \texttt{OUT} a nivel alto durante un tiempo \(T = 1.1 \cdot R \cdot C\), donde \(R\) es la resistencia entre \texttt{VCC} y \texttt{DIS}, y \(C\) el capacitor entre \texttt{THR} y tierra. Al finalizar, la salida vuelve a baja.
+    \item \textbf{Modo astable}: Genera una onda cuadrada continua. La frecuencia y el ciclo de trabajo dependen de dos resistencias (\(R_A\), \(R_B\)) y un capacitor \(C\) conectados a \texttt{DIS}, \texttt{THR} y \texttt{TRI}.
+    \item \textbf{Pin \texttt{CON}} (control): permite modificar la tensión de referencia interna de los comparadores; típicamente se desacopla a tierra con un capacitor de 10 nF.
+\end{itemize}
+
+\subsection{Transistores bipolares NPN y PNP}
+
+Los transistores NPN (ej. 2N3904, BC547) se usan como interruptores de baja lado: cuando la base recibe corriente suficiente (a través de una resistencia limitadora), el transistor satura y conecta el colector a tierra. Los transistores PNP (ej. 2N3906, BC557) funcionan como interruptores de alto lado: con la base a un nivel bajo respecto del emisor, saturan y conectan el colector a la tensión de alimentación.
+
+% ---------------------------------------------------------------------------
+\subsection{Semáforo peatonal y display de cuenta regresiva}
+Sección a cargdo de: Brandon
+\subsubsection{Oscilador de base de tiempo — NE555 astable}
+
+El circuito integrado NE555, operado en modo astable, constituye la base de tiempo del
+subsistema peatonal. En esta configuración el chip oscila de forma autónoma, produciendo
+en su salida (pin~3) un tren de pulsos cuadrados cuya frecuencia depende de dos
+resistencias externas $R_A$ y $R_B$, y de un capacitor de temporización
+$C$~\cite{Floyd2008}:
+
+\begin{equation}
+    f = \frac{1{,}44}{(R_A + 2\,R_B)\,C}
+    \label{eq:555_freq}
+\end{equation}
+
+Con $R_A = 68\,\text{k}\Omega$, $R_B = 47\,\text{k}\Omega$ y $C = 10\,\mu\text{F}$
+se obtiene un período de aproximadamente $1{,}1\,\text{s}$ por pulso, suficiente para
+implementar la cuenta regresiva de 20 segundos. Los tiempos en alto y en bajo son:
+
+\begin{equation}
+    t_H = 0{,}693\,(R_A + R_B)\,C, \qquad t_L = 0{,}693\,R_B\,C
+    \label{eq:555_tiempos}
+\end{equation}
+
+\subsubsection{Monoestable — MC14538BCP}
+
+El MC14538BCP contiene dos monoestables retrigerables de precisión. Un monoestable
+permanece en su estado estable hasta recibir un disparo; entonces su salida cambia
+durante un tiempo $T_W$ fijado por componentes externos, y luego regresa al
+reposo:
+
+\begin{equation}
+    T_W = R_{ext}\,C_{ext}
+    \label{eq:mono}
+\end{equation}
+
+Cada unidad puede dispararse por flanco positivo ($A_2$) o negativo ($A_1$). En el
+sistema peatonal se usan dos instancias.
+
+\paragraph{Primer monoestable — antirrebote del botón.}
+Los pulsadores mecánicos producen rebotes de hasta $10\,\text{ms}$. El primer
+monoestable se dispara por flanco negativo en $A_1$ cuando el peatón presiona el botón
+(la entrada cae de $+5\,\text{V}$ a $0\,\text{V}$ gracias a una resistencia de
+pull-up de $10\,\text{k}\Omega$), generando un único pulso limpio de:
+
+\begin{equation}
+    T_{W1} = 10\,\text{k}\Omega \times 10\,\mu\text{F} = 100\,\text{ms}
+    \label{eq:tw1}
+\end{equation}
+
+Este pulso supera el tiempo de rebote típico y actúa como orden puntual hacia el
+flip-flop~\cite{Floyd2008}.
+
+\paragraph{Segundo monoestable — señal LOAD.}
+Los contadores CD4510BE requieren un pulso en su pin \textit{Preset Enable} ($PE$,
+activo alto) para cargar el valor inicial 20. El segundo monoestable detecta el flanco
+positivo de $Q$ del flip-flop y genera:
+
+\begin{equation}
+    T_{W2} = 1\,\text{k}\Omega \times 1\,\text{nF} = 1\,\mu\text{s}
+    \label{eq:tw2}
+\end{equation}
+
+\subsubsection{Flip-flop tipo D — TC4013BP}
+
+El TC4013BP contiene dos flip-flops tipo~D con entradas asíncronas de set
+($\overline{SD}$) y reset ($\overline{CD}$). La Tabla~\ref{tab:verdad_4013} resume
+el comportamiento relevante.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Entradas asíncronas del TC4013BP}
+    \label{tab:verdad_4013}
+    \begin{tabular}{ccc}
+        \toprule
+        $\overline{SD}$ & $\overline{CD}$ & $Q$ \\
+        \midrule
+        1 & 0 & 1 (set) \\
+        0 & 1 & 0 (reset) \\
+        0 & 0 & indefinido \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+El pulso del primer monoestable activa $\overline{SD}$ ($Q \to 1$, paso habilitado).
+Al finalizar la cuenta, la lógica de detección activa $\overline{CD}$ ($Q \to 0$,
+reposo). Las salidas $Q$ y $\overline{Q}$ controlan los LED verde y rojo,
+respectivamente, y el pin de blanking de los decodificadores.
+
+\subsubsection{Contadores BCD descendentes — CD4510BE}
+
+El CD4510BE es un contador BCD síncrono de 4 bits con dirección seleccionable
+($U/\overline{D} = 0$ para descender), habilitación por $CI$ y carga paralela asíncrona
+por $PE$. Para representar 20 se usan dos contadores en cascada: unidades con
+$P_1$--$P_4 = 0000$ (BCD~0) y decenas con $P_2 = 1$, demás a tierra (BCD~2). El $CO$
+del contador de unidades habilita el conteo de las decenas:
+
+\begin{equation}
+    N_{total} = N_{dec} \times 10 + N_{uni}
+    \label{eq:bcd}
+\end{equation}
+
+Cuando ambos llegan a cero, el $CO$ del contador de decenas activa la lógica de reset.
+
+\subsubsection{Decodificador BCD a siete segmentos — HEF4511BP}
+
+El HEF4511BP convierte el BCD de 4 bits en las señales $a$--$g$ para un display de
+cátodo común. El pin $\overline{BI}$ (blanking, activo bajo) se conecta a $Q$ del
+flip-flop para apagar el display en estado de reposo. La corriente por segmento se
+limita con $R_{seg} = 220\,\Omega$:
+
+\begin{equation}
+    I_{seg} = \frac{V_{OH} - V_F}{R_{seg}} \approx \frac{4{,}5 - 2{,}0}{220}
+            \approx 11{,}4\,\text{mA}
+    \label{eq:iseg}
+\end{equation}
+
+\subsubsection{Oscilador de base de tiempo — NE555 astable}
+El circuito integrado NE555, operado en modo astable, constituye la base de tiempo del
+subsistema peatonal. ... (se mantiene igual)
+
+% [El resto de subsecciones se mantienen igual hasta los componentes]
+
+\subsubsection{Componentes pasivos del subsistema peatonal}
+
+Las Tablas~\ref{tab:res} y \ref{tab:cap} listan las resistencias y capacitores
+utilizados en este subsistema.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Resistencias del subsistema peatonal}
+    \label{tab:res}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Referencia} & \textbf{Valor nominal} & \textbf{Función} \\
+        \midrule
+        $R_1$            & $68\,\text{k}\Omega$   & $R_A$ del 555 astable \\
+        $R_2$            & $47\,\text{k}\Omega$   & $R_B$ del 555 astable \\
+        $R_3$, $R_4$     & $10\,\text{k}\Omega$   & Pull-up botones A y B \\
+        $R_5$            & $10\,\text{k}\Omega$   & $R_{ext}$ monoestable 1 (antirrebote) \\
+        $R_6$            & $1\,\text{k}\Omega$    & $R_{ext}$ monoestable 2 (LOAD) \\
+        $R_7$--$R_{20}$  & $330\,\Omega$          & Limitación de corriente \\
+        $R_{21}$--$R_{24}$ & $330\,\Omega$        & Limitación LED verde y rojo \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Capacitores del subsistema peatonal}
+    \label{tab:cap}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Referencia} & \textbf{Valor nominal} & \textbf{Función} \\
+        \midrule
+        $C_1$        & $10\,\mu\text{F}$     & Temporización del oscilador 555 \\
+        $C_2$        & $10\,\mu\text{F}$     & $C_{ext}$ monoestable 1 (antirrebote) \\
+        $C_3$        & $1\,\text{nF}$        & $C_{ext}$ monoestable 2 (LOAD) \\
+        $C_4$        & $10\,\text{nF}$       & Desacoplo / filtrado adicional \\
+        $C_5$        & $0{,}01\,\text{nF}$   & Desacoplo de alta frecuencia \\
+        $C_6$, $C_7$ & $100\,\text{nF}$      & Desacoplo de alimentación (bypass) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------
+\subsection{Sistema de audio}
+Sección a cargo de: Kevin Méndez
+TC4066BP:
+El TC4066BP contiene cuatro interruptores analógicos bidireccionales controlados digitalmente. Cada interruptor posee tres terminales: dos de señal y uno de control. Cuando el pin de control recibe un nivel lógico alto (+5V), el canal entre los terminales de señal conduce con una resistencia típica de 80 Ω, despreciable frente a los componentes externos del circuito. Cuando el control recibe un nivel bajo (0V), el canal se abre presentando impedancia virtualmente infinita.
+A diferencia de los interruptores mecánicos, la conmutación es instantánea y no genera rebotes, lo que lo hace ideal para seleccionar componentes pasivos en circuitos de temporización y oscilación Floyd2008.
+
+% ---------------------------------------------------------------------------
+\subsection{Sistema de potencia y transformador}
+% Sección a cargo de: (nombre del compañero)
+Texto.
+
+% ===========================================================================
+\section{Metodología}
+
+% ---------------------------------------------------------------------------
+\subsection{Semáforo vehicular}
+Sección a cargo de: Wilson
+\subsection{Empleo del CD4013}
+
+El flip-flop se utiliza como elemento de memoria del estado principal del semáforo: \texttt{1Q} alto indica que el LED verde está encendido y el sistema en fase ``verde''; \texttt{1Q} bajo indica fase ``rojo/amarillo''. 
+
+\begin{itemize}
+    \item La entrada \texttt{1D} se fija a VCC, de modo que cada flanco de subida en \texttt{1CLK} (generado por un pulsador) llevará \texttt{1Q} a nivel alto. 
+    \item La entrada asíncrona \texttt{1RST} se conecta al colector de un transistor NPN (Q4) controlado por la salida del monoestable del LED rojo (CI2). Cuando el LED rojo termina su temporización, Q4 satura, llevando \texttt{1RST} a nivel bajo, lo que resetea el flip-flop y pone \texttt{1Q} en bajo, finalizando la fase verde.
+    \item Las demás entradas (\texttt{1SET}, \texttt{2SET}, \texttt{2D}, \texttt{2CLK}, \texttt{2RST}) se conectan a tierra para inutilizar el segundo flip-flop.
+\end{itemize}
+
+\subsection{Empleo de los tres LM555}
+
+\subsubsection{CI4 (555 \#1) – Oscilador astable para parpadeo del LED amarillo}
+
+Este temporizador se configura en modo astable libre con dos resistencias de 4.7 k$\Omega$ (R12 y R13) y un capacitor de 47 $\mu$F (C5). Genera una onda cuadrada en su salida \texttt{OUT} que se aplica al ánodo del LED amarillo a través de una resistencia de 500 $\Omega$. La frecuencia de parpadeo permite que el LED amarillo destelle cuando está habilitado.
+
+\subsubsection{CI3 (555 \#2) – Monoestable para temporización del LED amarillo y disparo del rojo}
+
+Este circuito actúa como generador de pulso único. Su entrada \texttt{TRI} está normalmente en alto (por resistencia R9 de 10 k$\Omega$ a VCC). Cuando \texttt{1Q} del 4013 se pone a alto, el transistor Q1 satura y lleva \texttt{TRI} a nivel bajo, disparando el monoestable. 
+
+La salida \texttt{OUT} de CI3 pasa entonces a nivel alto durante un tiempo determinado por R8 (470 k$\Omega$) y C3 (10 $\mu$F). Esta salida cumple dos funciones:
+\begin{enumerate}
+    \item A través de Q3 (NPN), conecta el cátodo del LED amarillo a tierra, permitiendo que el LED amarillo se ilumine con la señal de parpadeo proveniente de CI4.
+    \item Mediante una red diferenciadora (C7 de 10 $\mu$F + R11 de 10 k$\Omega$), genera un pulso corto negativo en el nodo de unión que se conecta al pin \texttt{TRI} de CI2 (555 \#3), iniciando así la temporización del LED rojo.
+\end{enumerate}
+
+Al finalizar el tiempo del monoestable, \texttt{OUT} de CI3 vuelve a nivel bajo, apagando el LED amarillo y deshabilitando el paso de la señal de CI4.
+
+\subsubsection{CI2 (555 \#3) – Monoestable para el LED rojo y reset del sistema}
+
+Este temporizador también funciona como monoestable. Su entrada \texttt{TRI} recibe el pulso generado por la red diferenciadora de CI3. Al dispararse, su salida \texttt{OUT} se pone a nivel alto durante un tiempo nominal dado por R5 (1.8 M$\Omega$) y C1 (10 $\mu$F). 
+
+La salida alta:
+\begin{itemize}
+    \item Enciende el LED rojo a través de R6 (330 $\Omega$).
+    \item Satura el transistor Q4 mediante R7 (10 k$\Omega$). El colector de Q4 se conecta a \texttt{1RST} del 4013 a través de R4 (10 k$\Omega$), forzando el reset del flip-flop y por tanto apagando el LED verde.
+\end{itemize}
+Al terminar la temporización, \texttt{OUT} de CI2 vuelve a nivel bajo, el LED rojo se apaga y Q4 deja de saturar, liberando \texttt{1RST} y dejando el sistema listo para un nuevo ciclo al presionar nuevamente el botón.
+
+\subsection{Control de los LEDs}
+
+\begin{itemize}
+    \item \textbf{LED verde}: Controlado por el transistor PNP Q2. Cuando \texttt{1Q} del 4013 es alto, la base de Q2 se lleva a un nivel bajo (respecto del emisor a VCC) a través de R2 (10 $\Omega$), saturando el PNP y permitiendo la corriente desde VCC al LED verde limitada por R3 (660 $\Omega$).
+    \item \textbf{LED amarillo}: El ánodo recibe la señal de parpadeo desde CI4. El cátodo es conectado a tierra por Q3 solo cuando la salida de CI3 es alta. De este modo, el LED amarillo parpadea únicamente durante el tiempo que dura el pulso del monoestable CI3.
+    \item \textbf{LED rojo}: Se enciende directamente por la salida de CI2 cuando su monoestable está activo.
+\end{itemize}
+
+\subsection{Diagrama de flujo de la secuencia}
+
+1. Reposo inicial: 4013 reseteado, LED rojo apagado (si CI2 no está disparado), LED amarillo apagado, LED verde apagado.
+2. Usuario presiona botón → flanco en \texttt{1CLK} → \texttt{1Q} = alto → LED verde encendido.
+3. \texttt{1Q} alto → Q1 satura → dispara CI3 (555\#2).
+4. CI3 genera pulso de tiempo fijo:
+   - Durante ese pulso: LED amarillo parpadea (por CI4 + Q3).
+   - Al final del pulso, la red RC (C7+R11) dispara CI2.
+5. CI2 genera pulso de tiempo fijo:
+   - Durante ese pulso: LED rojo encendido.
+   - Q4 saturado → mantiene \texttt{1RST} del 4013 en bajo → \texttt{1Q} = bajo → LED verde apagado.
+6. Termina pulso de CI2 → LED rojo apagado, Q4 corta → \texttt{1RST} liberado.
+7. Sistema vuelve al estado 1, esperando nuevo pulso de botón.
+
+\subsection{Componentes discretos utilizados}
+
+Los valores de resistencias y capacitores se detallan en la Tabla~\ref{tab:pasivos} (incluida en el anexo correspondiente). Todos los capacitores electrolíticos respetan su polaridad, y los capacitores cerámicos de 10 nF se emplean para desacoplo del pin \texttt{CON} de cada 555.
+% ---------------------------------------------------------------------------
+\subsection{Semáforo peatonal y display de cuenta regresiva}
+A cargo de: Brandon
+
+El subsistema peatonal opera de la siguiente forma: en estado de reposo, ambos semáforos
+muestran luz roja y los displays permanecen apagados ($Q = 0$, $\overline{BI}$ activo).
+Al presionar cualquiera de los dos botones, el primer monoestable genera un pulso limpio
+que activa el flip-flop TC4013BP ($Q \to 1$). En ese instante el segundo monoestable
+detecta el flanco positivo y genera el pulso LOAD, cargando el valor 20 en los contadores.
+El oscilador de $\approx 1\,\text{Hz}$ decrementa los contadores segundo a segundo. Al
+llegar a cero, el TC4093BP invierte el $CO$ de las decenas y resetea el flip-flop,
+apagando el verde y devolviendo el sistema al estado de reposo.
+
+La señal de solicitud peatonal ($Q$) se comunica al subsistema vehicular para forzar su
+transición a rojo.
+
+\subsubsection{Observaciones sobre la simulación en NI Multisim}
+
+Durante la etapa de simulación se identificaron limitaciones que impidieron verificar el
+funcionamiento integral del subsistema. Los principales problemas encontrados fueron:
+
+\begin{itemize}
+    \item Los pines ocultos de alimentación (VDD y VSS) de los circuitos integrados CMOS
+          no se conectan automáticamente; si los símbolos globales no se colocan de forma
+          explícita, los chips quedan sin tensión y sus salidas son indeterminadas.
+    \item El pin $CI$ del contador de decenas no quedó correctamente enlazado al $CO$ del
+          contador de unidades en algunas versiones del esquema, impidiendo el decremento
+          de las decenas.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\subsection{Sistema de audio}
+A cargo de: Kevin Méndez
+
+El subsistema de audio opera de la siguiente forma: en estado de reposo, 
+con el semáforo vehicular en verde, el flip-flop del subsistema peatonal 
+permanece inactivo ($Q = 0$), manteniendo el NE555 inhibido mediante su 
+pin de reset (pin 4) y silenciando el parlante. Al activarse el cruce 
+peatonal ($Q \rightarrow 1$), el NE555 comienza a oscilar a 1 Hz, 
+produciendo el pitido característico a través del TC4066BP, que conecta 
+la resistencia $R_{B1} = 68\,k\Omega$ al pin de descarga del oscilador. 
+Simultáneamente, el MC14538BCP inicia una temporización de 15 segundos 
+($T_W = R_{ext}C_{ext}$). Al concluir este intervalo, su flanco de salida 
+setea el TC4013BP ($Q \rightarrow 1$), el cual conmuta el TC4066BP hacia 
+la resistencia $R_{B2} = 33\,k\Omega$, elevando la frecuencia de 
+oscilación a 2 Hz durante los últimos 5 segundos del cruce. Al finalizar 
+el verde peatonal, la señal $Q$ del flip-flop principal regresa a 0, 
+reseteando el TC4013BP y el NE555, devolviendo el sistema al estado de 
+reposo.
+
+% ---------------------------------------------------------------------------
+\subsection{Sistema de potencia y transformador}
+% Sección a cargo de: (nombre del compañero)
+Texto.
+
+% ===========================================================================
+\section{Análisis de resultados}
+Texto.
+
+% ===========================================================================
+\section{Conclusiones y Recomendaciones}
+
+\subsection{Conclusiones}
+Texto.
+
+% ===========================================================================
+\nocite{*}
+\printbibliography
+
+% ===========================================================================
+\begin{IEEEbiographynophoto}{Kevin Méndez Carvajal}
+Kevin Méndez Carvajal es estudiante de Ingeniería Electrónica en el Tecnológico de
+Costa Rica (ITCR). Su área de interés incluye el diseño de circuitos analógicos,
+sistemas embebidos y automatización industrial.
+\end{IEEEbiographynophoto}
+
+\begin{IEEEbiographynophoto}{Wilson Osejo Ruiz}
+Wilson Osejo Ruiz es estudiante de Ingeniería Electrónica en el Tecnológico de
+Costa Rica (ITCR). Sus intereses se centran en electrónica de potencia,
+instrumentación y control de procesos.
+\end{IEEEbiographynophoto}
+
+\begin{IEEEbiographynophoto}{Kevin~Sobalvarro~Mora}
+Kevin Sobalvarro Mora es estudiante de Ingeniería Electrónica en el Tecnológico de
+Costa Rica (ITCR). Cursando el curso EL3215 Laboratorio de Electrónica Analógica,
+I Semestre 2026.
+
+Correo: kevinmorasoval03@estudiantec.cr
+\end{IEEEbiographynophoto}
+
+\begin{IEEEbiographynophoto}{Brandon~Nájera~Zúñiga}
+Brandon Nájera Zúñiga es estudiante de Ingeniería Electrónica en el Tecnológico de
+Costa Rica (ITCR). Cursando el curso EL3215 Laboratorio de Electrónica Analógica,
+I Semestre 2026.
+
+Correo: brandonnz@estudiantec.cr
+\end{IEEEbiographynophoto}
+
+\vfill
+
+\end{document}
