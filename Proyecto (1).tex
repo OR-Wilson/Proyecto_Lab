@@ -23,21 +23,38 @@ Basado en Lógica Digital Discreta\\
 \large Propuesta de Diseño}
 
 \author{
-    \IEEEauthorblockN{Brandon, Wilson, Kevin}
-    \IEEEauthorblockA{
-        Ingeniería en Electrónica \\
-        Instituto Tecnológico de Costa Rica \\
-        Laboratorio de Electrónica Analógica \\
-        \textit{Correos electrónicos institucionales}
-    }
+\IEEEauthorblockN{1\textsuperscript{st} Kevin Méndez Carvajal}
+\IEEEauthorblockA{
+    \textit{Ingeniería en Electrónica} \\
+    \textit{Instituto Tecnológico de Costa Rica} \\
+    Laboratorio de Electrónica Analógica \\
+    kemendez@estudiantec.cr
 }
-
+\\
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Brandon Nájera Zúñiga}
+\IEEEauthorblockA{
+    \textit{Ingeniería en Electrónica} \\
+    \textit{Instituto Tecnológico de Costa Rica} \\
+    Laboratorio de Electrónica Analógica \\
+    brandonnz@estudiantec.cr
+}
+\\
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Wilson Osejo Ruiz}
+\IEEEauthorblockA{
+    \textit{Ingeniería en Electrónica} \\
+    \textit{Instituto Tecnológico de Costa Rica} \\
+    Laboratorio de Electrónica Analógica \\
+    wilsonruiz@estudiantec.cr
+}
+}
 \begin{document}
 \renewcommand{\NOTA}[1]{#1}
 \maketitle
 
 \begin{abstract}
-El presente documento describe la propuesta de diseño de un sistema de semáforo vehicular y peatonal implementado en su totalidad con electrónica digital discreta, sin el empleo de microcontroladores ni dispositivos lógicos programables. El sistema se organiza en tres subsistemas funcionales: (i) una fuente de alimentación lineal que transforma la red de \SI{120}{\volt_{AC}} en niveles de continua regulados; (ii) una unidad de control lógico secuencial encargada de gestionar los tiempos del ciclo semafórico, un display de siete segmentos para la cuenta regresiva peatonal y un generador de audio para la señalización sonora; y (iii) un subsistema de iluminación de potencia que conmuta los arreglos de diodos emisores de luz (LED) vehiculares y peatonales. Se presenta el diagrama de bloques general, la máquina de estados que rige la secuencia de luces, los criterios de selección de componentes y los lineamientos para la simulación en Multisim y la posterior implementación física en al menos dos placas de circuito impreso (PCB). Los valores numéricos definitivos de tiempos, componentes y disipación térmica se incorporarán en una revisión posterior del documento.
+El presente documento describe la propuesta de diseño de un sistema de semáforo vehicular y peatonal implementado en su totalidad con electrónica digital discreta, sin el empleo de microcontroladores ni dispositivos lógicos programables. El sistema se organiza en tres subsistemas funcionales: (i) una fuente de alimentación lineal que transforma la red de \SI{120}{\volt_{AC}} en niveles de continua regulados; (ii) una unidad de control lógico secuencial encargada de gestionar los tiempos del ciclo semafórico, un display de siete segmentos para la cuenta regresiva peatonal y un generador de audio para la señalización sonora; y (iii) un subsistema de iluminación de potencia que conmuta los arreglos de diodos emisores de luz (LED) vehiculares y peatonales. Se presenta el diagrama de bloques general, la máquina de estados que rige la secuencia de luces, los criterios de selección de componentes y los lineamientos para la simulación en Multisim y la posterior implementación física en al menos dos placas de circuito impreso (PCB).
 \end{abstract}
 \renewcommand{\IEEEkeywordsname}{Palabras Clave}
 \begin{IEEEkeywords}
@@ -61,8 +78,8 @@ Introducir aprendizaje de ingeniería en donde requiera poner en práctica las h
 \begin{enumerate}
     \item Diseñar una fuente de alimentación lineal completa (transformador, rectificador, filtro y reguladores) capaz de suministrar las tensiones necesarias al sistema, con el adecuado manejo de disipación térmica.
     \item Implementar la lógica secuencial de control del semáforo utilizando exclusivamente circuitos integrados digitales discretos (temporizadores, contadores, compuertas y biestables), sin dispositivos programables, para gestionar los tiempos de 30~s, 5~s y 20~s, así como la cuenta regresiva en displays de 7 segmentos y la señal de audio con cambio de frecuencia.
-    \item Diseñar los circuitos de conmutación (drivers transistorizados) para el manejo de los arrays de LEDs vehiculares y peatonales, asegurando la correcta iluminación y la disipación de potencia en las pistas del PCB.
-    \item Utilizar herramientas de simulación (Multisim) para verificar la integración de las tres etapas (alimentación, control y potencia), y posteriormente implementar el sistema completo en una maqueta física con al menos dos circuitos impresos fabricados en laboratorio.
+    \item Diseñar los circuitos de conmutación (drivers transistorizados) para el manejo de los arrays de LEDs vehiculares y peatonales, asegurando la correcta iluminación y la disipación de potencia.
+    \item Utilizar herramientas de simulación (Multisim), (Circuit Wizard) para verificar la integración de las tres etapas (alimentación, control y potencia), y posteriormente implementar el sistema completo en una maqueta física con al menos dos circuitos impresos fabricados en laboratorio.
     \item Fomentar el trabajo colaborativo en equipo, aplicando buenas prácticas de ensamblaje, medición y documentación técnica bajo el formato IEEE y control de versiones.
 \end{enumerate}
 
@@ -184,8 +201,6 @@ $\theta_{JA} \approx \SI{22}{\celsius\per\watt}$
 Este valor está muy por debajo del límite máximo del fabricante (\SI{125}{\celsius}), por lo que el regulador opera en condiciones térmicas seguras.
 
 La instalación del disipador de calor es adecuada para el consumo actual del circuito. Se recomienda verificar la temperatura cuando se conecte la carga completa del semáforo.
-
-\NOTA{Mediciones pendientes: voltaje real de entrada al LM7805, corriente total consumida y temperatura del disipador en operación normal.}
 \\
 \subsubsection{Esquemático de la fuente}
 \begin{figure}[H]
@@ -203,7 +218,7 @@ Este subsistema constituye el núcleo de decisión del semáforo y fue implement
 \\
 \subsubsection{Bases de tiempo (relojes)}
 
-La referencia temporal del sistema se genera mediante tres temporizadores **LM555CM** configurados en modo astable:
+La referencia temporal del sistema se genera mediante tres temporizadores LM555CM configurados en modo astable:
 - Uno para la base de tiempo principal de conteo (reloj de 1 Hz).
 - Uno para la generación del tono de audio normal.
 - Uno para el tono agudo de aviso final (últimos 5 segundos).
@@ -215,11 +230,12 @@ f_{osc} = \frac{1.44}{(R_1 + 2R_2)\,C_1}
 \label{eq:555_astable}
 \end{equation}
 
-\subsubsection{Contadores de tiempo y Display de cuenta regresiva}
+\subsubsection{Contador de tiempo y Display de cuenta regresiva}
+El tiempo de cruce peatonal de \SI{25}{\second} se implementa con dos contadores síncronos 74LS192N en cascada (unidades y decenas) operando en modo descendente, partiendo del valor 25 y decrementando hasta 0. La salida BCD de estos contadores se decodifica mediante dos integrados 4511BD (decodificador BCD a 7 segmentos con latch interno), uno para cada dígito, alimentando el único display de 7 segmentos presente en el circuito.
 
-Los tiempos de 20 s y 30 s se implementan con dos contadores síncronos 74LS192N en cascada (unidades y decenas) operando en modo descendente. La salida BCD de estos contadores se decodifica mediante dos integrados 4511BD (decodificador BCD a 7 segmentos con latch interno), uno para cada dígito. Cada segmento del display se protege con resistencias limitadoras de \SI{330}{\ohm}.
+Cada segmento del display se protege con resistencias limitadoras de \SI{330}{\ohm}. Adicionalmente, cuando la cuenta alcanza el valor 5, una etapa comparadora detecta dicho estado y conmuta la frecuencia de un oscilador que alimenta al buzzer, aumentando la cadencia del pitido para alertar al peatón de que el tiempo de cruce está por finalizar.
 
-Esta configuración permite visualizar claramente la cuenta regresiva para el peatón.
+Esta configuración permite visualizar claramente la cuenta regresiva para el peatón, complementada con la señal sonora de advertencia en los últimos segundos.
 \\
 \subsubsection{Generador de sonido y Amplificador}
 
@@ -328,11 +344,52 @@ Las señales de habilitación para cada color de LED provienen de la máquina de
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.45\textwidth}{\centering \vspace{2.2cm} Espacio reservado para el esquemático del bloque de iluminación (LEDs vehiculares y peatonales) \vspace{2.2cm}}}
-\caption{Esquema del subsistema de iluminación con LEDs y drivers.}
-\label{fig:leds}
-\end{figure}
+\resizebox{0.92\columnwidth}{!}{%
+\begin{tikzpicture}[
+    block/.style={draw, rectangle, rounded corners, minimum width=1.7cm, minimum height=0.8cm, align=center, font=\scriptsize},
+    arrow/.style={-{Latex[length=1.6mm]}, thick}
+]
 
+% --- Fila superior: cascada de osciladores ---
+\node[block] (ic1) at (0,0) {NE566};
+\node[block] (ic2) at (4.4,0) {NE556\\\#1};
+\node[block] (ic3) at (8.8,0) {NE556\\\#2};
+
+% --- Periféricos asociados a cada oscilador ---
+\node[block] (boton) at (-2.2,-1.5) {Botón};
+\node[block] (ledr1) at (0,-1.5) {LED rojo};
+\node[block] (diodo) at (4.4,-1.5) {1N4001};
+\node[block] (leda) at (8.8,-1.5) {LED\\amarillo};
+
+% --- Arreglo de compuertas ---
+\node[block] (g1) at (4.4,-3.0) {74LS02};
+\node[block] (g2) at (7.0,-4.5) {74LS05};
+
+% --- Salidas hacia indicadores ---
+\node[block] (ledv1) at (2.3,-4.5) {LED\\verde};
+\node[block] (ledr2) at (4.4,-4.5) {LED\\rojo};
+\node[block] (ledv2) at (7.0,-6.0) {LED\\verde};
+
+% --- Conexiones: cascada de temporizadores ---
+\draw[arrow] (boton) -- (ic1);
+\draw[arrow] (ic1) -- (ledr1);
+\draw[arrow] (ic1) -- (ic2) node[midway, above, font=\tiny]{señal};
+\draw[arrow] (ic2) -- (diodo);
+\draw[arrow] (ic2) -- (ic3) node[midway, above, font=\tiny]{señal};
+\draw[arrow] (ic3) -- (leda);
+
+% --- Conexiones: lógica de combinación ---
+\draw[arrow] (ic1) -- (g1) node[midway, left, font=\tiny]{señal 1};
+\draw[arrow] (ic3) -- (g1) node[midway, right, font=\tiny]{señal ppal.};
+\draw[arrow] (g1) -- (ledv1);
+\draw[arrow] (g1) -- (ledr2);
+\draw[arrow] (g1) -- (g2);
+\draw[arrow] (g2) -- (ledv2);
+
+\end{tikzpicture}}
+\caption{Interconexión simplificada del subsistema de iluminación: cascada de osciladores NE566/NE556 y lógica de combinación mediante compuertas 74LS02/74LS05 hacia los LEDs vehiculares y peatonales.}
+\label{fig:leds_logica}
+\end{figure}
 \subsubsection{Consideraciones de diseño}
 
 Aunque en una implementación final de potencia se recomendaría el uso de transistores 2N2222A como drivers para cada arreglo de LEDs, en la simulación en Circuit Wizard se logró un funcionamiento correcto con salidas directas de las compuertas lógicas y el NE556, gracias al bajo consumo de los LEDs individuales utilizados. Para la implementación física en PCB se deberá evaluar si es necesario añadir etapas de potencia adicionales según la cantidad de LEDs por color.
@@ -342,9 +399,9 @@ Aunque en una implementación final de potencia se recomendaría el uso de trans
 \subsubsection{Distribución de calor y potencia en el PCB}
 Los conductores que transportan la corriente de los arreglos de LED deben dimensionarse considerando el incremento de temperatura admisible por unidad de ancho de pista, conforme a las curvas estándar de IPC-2221 para el cobre de la capa correspondiente, evitando además rutas largas y estrechas que concentren disipación resistiva ($P = I^2 R_{pista}$) en zonas críticas del PCB.
 \\
-% ============================================================
+
 % 5. MÁQUINA DE ESTADOS
-% ============================================================
+
 \section{Máquina de Estados del Semáforo}
 \label{sec:estados}
 
@@ -413,35 +470,13 @@ S3 & 11 & $TC_{5}=1$  & S0 & 00 \\
 \toprule
 \textbf{Estado} & \textbf{Veh. R/A/V} & \textbf{Peat. R/V} & \textbf{Cont. habilitado} & \textbf{Audio} \\
 \midrule
-S0 & 0/0/1 & 1/0 & ---        & Apagado \\
-S1 & 1/0/0 & 0/1 & 20 s       & Tono normal \\
-S2 & 1/0/0 & Int.& 30 s       & Tono normal $\to$ agudo (últ. 5 s) \\
-S3 & 0/1/0 & 1/0 & 5 s        & Apagado \\
+S0 & 0/0/1 & 1/0  & ---             & Apagado \\
+S1 & 1/0/0 & 0/1  & 25 s $\to$ 6 s  & Tono normal \\
+S2 & 1/0/0 & Int. & 5 s $\to$ 0 s   & Tono agudo \\
+S3 & 0/1/0 & 1/0  & ---             & Apagado \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Propuesta de implementación con biestables y compuertas}
-Dado que la secuencia de estados es un incremento binario módulo 4 ($00 \to 01 \to 10 \to 11 \to 00$) condicionado por una señal de habilitación de avance $EN$, se propone implementar el registro de estado con dos biestables tipo D (p. ej. dos secciones de un 74LS74), operando como un contador binario síncrono habilitado, en lugar de sintetizar una tabla de excitación arbitraria. La señal de habilitación de avance se define como
-
-\begin{equation}
-EN = (\overline{Q_1}\,\overline{Q_0}\, P) + (\overline{Q_1}\,Q_0\,TC_{20}) + (Q_1\,\overline{Q_0}\,TC_{30}) + (Q_1\,Q_0\,TC_{5})
-\label{eq:enable}
-\end{equation}
-
-y las ecuaciones de excitación de los biestables D, correspondientes a un contador binario de 2 bits con habilitación, resultan
-
-\begin{equation}
-D_0 = Q_0 \oplus EN
-\label{eq:d0}
-\end{equation}
-\begin{equation}
-D_1 = Q_1 \oplus (EN \cdot Q_0)
-\label{eq:d1}
-\end{equation}
-
-Ambos biestables se disparan con el mismo reloj de \SI{1}{\hertz} (o el reloj base del sistema), de manera que el estado únicamente avanza cuando $EN=1$, es decir, cuando se cumple la condición de salida del estado actual. La lógica combinacional de las ecuaciones~\eqref{eq:enable}--\eqref{eq:d1} se implementa con compuertas AND, OR, XOR e inversores discretos (familias 74LS00/74LS08/74LS86/74LS04 o sus equivalentes CMOS de la serie 4000), y la decodificación de salidas de la Tabla~\ref{tab:salidas} se obtiene de un decodificador de 2 a 4 líneas (p. ej. 74LS139) que habilita, para cada estado, las compuertas correspondientes a las luces vehiculares, peatonales, el conteo del contador activo y el modo del oscilador de audio.
-\\
 
 % 6. CRITERIOS DE SELECCIÓN DE COMPONENTES
 
@@ -452,10 +487,14 @@ La implementación se realizó principalmente con la familia lógica TTL (serie 
 - Biestables: \textbf{74LS74D}
 - Compuertas: \textbf{7404N} (inversores) y \textbf{7408J} (AND)
 - Decodificadores: \textbf{4511BD} (familia CMOS, compatible con 5 V)
+- Osciladores: \textbf{NE566} (VCO) y \textbf{NE556} (doble temporizador 555)
+- Compuertas de combinación: \textbf{74LS02} (NOR cuádruple) y \textbf{74LS05} (inversor hexagonal, salida en colector abierto)
 \\
 \\
 La mezcla de familias TTL y CMOS (4511) fue posible gracias a que ambos operan correctamente a \SI{5}{\volt}. Los transistores 2N2222A se seleccionaron por su alta ganancia de corriente y capacidad para conmutar el buzzer y posibles LEDs de potencia. Todos los componentes fueron elegidos considerando su disponibilidad en el laboratorio y facilidad de implementación en protoboard y PCB.
 La selección entre familias lógicas TTL (serie 74LS) y CMOS (serie 4000) se realiza considerando los siguientes criterios: (i) compatibilidad de niveles de voltaje con el resto del sistema, dado que la serie 4000 admite un rango de alimentación más amplio (\SIrange{3}{15}{\volt}) lo cual facilita operar a \SI{12}{\volt} sin etapas adicionales de traslación de niveles, mientras que la serie 74LS está optimizada para \SI{5}{\volt}; (ii) velocidad de conmutación, donde la serie 74LS ofrece tiempos de propagación menores, relevantes únicamente si se requieren frecuencias de reloj elevadas, lo cual no es crítico en este proyecto dado que las bases de tiempo son del orden de \SI{1}{\hertz}; (iii) capacidad de corriente de salida en TTL para excitar cargas como LED indicadores de baja potencia sin etapas de amplificación adicionales; y (iv) disponibilidad en el laboratorio del curso.
+
+Para la generación de las bases de tiempo de las luces vehiculares y peatonales se emplearon tres circuitos integrados temporizadores en cascada: un NE566 (oscilador controlado por tensión) en la primera etapa, cuya frecuencia se ajusta mediante una resistencia y un capacitor externos, lo cual resultó conveniente durante la calibración experimental del ciclo de tiempos en el laboratorio; y dos NE556 en las etapas posteriores, aprovechando que cada encapsulado integra dos temporizadores tipo 555 independientes, reduciendo así el número de componentes discretos frente a usar cuatro 555 individuales. La elección de las compuertas 74LS02 (NOR cuádruple) y 74LS05 (inversor hexagonal con salida en colector abierto) responde a la necesidad de combinar e invertir las señales provenientes de los temporizadores para generar las secuencias de encendido de los LEDs vehiculares y peatonales; la salida en colector abierto del 74LS05 facilita además acoplar directamente cargas como LEDs sin requerir etapas adicionales de adaptación de corriente. Para la protección de los nodos asociados al segundo temporizador se utilizó un diodo 1N4001, cuyo voltaje inverso repetitivo de \SI{50}{\volt} y corriente promedio de \SI{1}{\ampere} son suficientes para esta etapa de baja potencia, sin necesidad de sobredimensionar como en la etapa de rectificación principal. Finalmente, los LEDs indicadores (rojo, amarillo y verde) se polarizaron mediante resistencias limitadoras de \SI{330}{\ohm}, calculadas a partir de la alimentación de \SI{5}{\volt}, una caída típica de \SI{2}{\volt} en el LED y una corriente de operación cercana a \SI{10}{\milli\ampere}, valor comercial estándar que garantiza brillo adecuado sin exceder la corriente máxima permitida por los LEDs ni por las salidas de los integrados TTL.
 
 Para la rectificación de la fuente se utiliza un diodo 1N4007 configurado como rectificador de media onda, aprovechando solo una mitad del secundario del transformador MIYAKO LP-573. Este diodo ofrece un amplio margen de seguridad con un voltaje inverso repetitivo de \SI{1000}{\volt} y una corriente promedio de \SI{1}{\ampere}, lo que lo hace más que suficiente para manejar la corriente de carga y el pico de corriente de arranque del capacitor electrolítico de \SI{4700}{\micro\farad}.
 \\
@@ -495,9 +534,7 @@ Estos resultados confirman un excelente desempeño de la fuente:
 - El rizado a la entrada del regulador es muy bajo gracias al capacitor de \SI{4700}{\micro\farad}.
 - El rizado a la salida es prácticamente negligible (\SI{18.45}{\micro\volt}), garantizando una alimentación limpia para la lógica digital.
 - La disipación térmica de \SI{1.09}{\watt} es fácilmente manejable con el disipador instalado en el LM7805.
-    \item \textbf{Simulación aislada del bloque de control}: verificación de la base de tiempo (ecuación~\eqref{eq:555_astable}), de la secuencia de estados de la Tabla~\ref{tab:transicion} mediante un analizador lógico virtual, y de la decodificación correcta del display de siete segmentos para cada valor de cuenta regresiva.
-    \item \textbf{Simulación aislada del bloque de iluminación}: verificación de la corriente y voltaje en cada arreglo de LED conforme a la ecuación~\eqref{eq:rled}, y de la correcta saturación de los transistores driver ante las señales lógicas de control.
-    \item \textbf{Integración de los tres subsistemas}: conexión del bloque de control y del bloque de iluminación a la salida regulada de la fuente, verificando que no exista caída de tensión significativa en los rieles de alimentación al conmutar simultáneamente todos los arreglos de LED, y que el generador de audio module correctamente su frecuencia en los últimos cinco segundos del cruce peatonal conforme a la ecuación~\eqref{eq:555_modo2}.
+    \item \textbf{Integración de los tres subsistemas}: conexión del bloque de control y del bloque de iluminación a la salida regulada de la fuente, verificando que no exista caída de tensión significativa en los rieles de alimentación al conmutar simultáneamente todos los arreglos de LED, y que el generador de audio module correctamente su frecuencia en los últimos cinco segundos del cruce peatonal.
 \end{enumerate}
 
 La validación funcional se realizará en Multisim siguiendo una estrategia incremental:
@@ -513,41 +550,17 @@ La validación funcional se realizará en Multisim siguiendo una estrategia incr
 
 \section{Consideraciones para el PCB}
 
-Conforme a los lineamientos del proyecto, la implementación física se distribuirá en al menos dos placas de circuito impreso, con la siguiente repartición propuesta de subsistemas:
+Conforme a los lineamientos del proyecto, la implementación física se distribuirá en al menos dos placas de circuito impreso, con la siguiente repartición como una propuesta de subsistemas:
 
 \begin{itemize}
-    \item \textbf{PCB 1}: Subsistema de alimentación completo (transformador externo, puente rectificador, filtro capacitivo, reguladores LM7805/LM7812 con sus respectivos disipadores) y los drivers de conmutación de potencia del subsistema de iluminación (transistores 2N2222/TIP31 y resistencias limitadoras de los arreglos de LED), agrupando en una sola placa las etapas que manejan mayor corriente y disipación térmica.
-    \item \textbf{PCB 2}: Subsistema de control lógico completo (oscilador base, contadores, lógica de la máquina de estados, decodificador BCD a siete segmentos y display) junto con el generador y amplificador de audio, agrupando en una sola placa las etapas de baja corriente y señal lógica.
+    \item \textbf{PCB 1}: Subsistema de alimentación completo (transformador externo, puente rectificador, filtro capacitivo, reguladores LM7805/LM7812 con sus respectivos disipadores)
+    \item \textbf{PCB 2}: Subsistema de control lógico completo de las luces leds
 \end{itemize}
 
 Esta separación física responde a un criterio de aislamiento de ruido: las corrientes de conmutación de los arreglos de LED y los transitorios de la etapa de rectificación pueden inducir ruido sobre la lógica digital si comparten plano de tierra sin un adecuado desacoplo, por lo que se recomienda interconectar ambas placas mediante un conector dedicado que separe físicamente la tierra de potencia (PCB 1) de la tierra de señal (PCB 2), uniéndolas en un único punto de referencia (estrella) cercano a la fuente.
 
-En cuanto al ruteo, las pistas que conducen la corriente de los arreglos de LED y de los reguladores deben dimensionarse en ancho según las tablas estándar de capacidad de corriente para cobre de 1 oz/ft² (IPC-2221), evitando ángulos de 90° en pistas de potencia, utilizando planos de cobre (\emph{copper pour}) para las referencias de tierra y alimentación siempre que el espacio de la placa lo permita, y ubicando los disipadores de los reguladores con suficiente espacio libre de cobre alrededor para favorecer la disipación por convección natural.
-
-% 9. CRONOGRAMA Y ENTREGABLES
-
-\section{Cronograma y Entregables}
-
-\begin{table}[H]
-\centering
-\caption{Cronograma de entregables del proyecto}
-\label{tab:cronograma}
-\begin{tabular}{cll}
-\toprule
-\textbf{Semana} & \textbf{Entregable} & \textbf{Estado} \\
-\midrule
-14 & Propuesta de diseño (presente documento) & En curso \\
-17 & Simulación funcional integrada en Multisim & \NOTA{Pendiente} \\
-19 & Implementación física en 2 PCB y entrega final & \NOTA{Pendiente} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\NOTA{Detallar, si el curso lo exige, las actividades intermedias entre cada hito (p. ej. compra de componentes, fabricación de PCB, pruebas de integración) y sus fechas específicas.}
-
-% ============================================================
 % REFERENCIAS
-% ============================================================
+
 \begin{thebibliography}{99}
 
 \bibitem{boylestad} R. L. Boylestad and L. Nashelsky, \emph{Electrónica: Teoría de Circuitos y Dispositivos Electrónicos}, 11.\textsuperscript{a} ed. Ciudad de México, México: Pearson Educación, 2013.
@@ -567,6 +580,11 @@ En cuanto al ruteo, las pistas que conducen la corriente de los arreglos de LED 
 \bibitem{tip31} ON Semiconductor, \emph{TIP31/TIP31A/TIP31C Datasheet}, 2013.
 
 \bibitem{ipc2221} IPC, \emph{IPC-2221: Generic Standard on Printed Board Design}, Bannockburn, IL, USA: IPC, 2012.
+
+\end{thebibliography}
+
+\end{document}
+
 
 \end{thebibliography}
 
